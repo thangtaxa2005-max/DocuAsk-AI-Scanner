@@ -12,7 +12,7 @@
 
 ## Cài và chạy
 
-Cài [APK release đã ký](release/DocuAsk-v1.0.0.apk) trên Android 8.0 trở lên. Muốn dùng tóm tắt/hỏi đáp, tạo key tại [Google AI Studio](https://aistudio.google.com/app/apikey), mở `⚙ Gemini` trong Thư viện rồi nhập key. OCR và đọc tài liệu đã lưu không cần mạng. Mỗi lần mở lại app cần nhập lại key.
+APK release đã ký được bàn giao tại `D:\DocuAsk\release\DocuAsk-v1.0.0.apk` trong workspace cục bộ (không đẩy lên Git). Cài trên Android 8.0 trở lên. Muốn dùng tóm tắt/hỏi đáp, tạo key tại [Google AI Studio](https://aistudio.google.com/app/apikey), mở `⚙ Gemini` trong Thư viện rồi nhập key. OCR và đọc tài liệu đã lưu không cần mạng. Mỗi lần mở lại app cần nhập lại key.
 
 Để biên dịch: mở thư mục này bằng Android Studio, dùng JDK 17+ và Android SDK 34, chạy `:app:assembleDebug`. Để tạo APK release đã ký, giữ `release/signing.properties` và keystore được nêu trong đó rồi chạy `:app:assembleRelease`. Hai tệp ký không được đưa lên Git; **hãy sao lưu chúng ở nơi riêng tư** vì thiếu chúng sẽ không thể cập nhật APK bằng cùng danh tính ký.
 
