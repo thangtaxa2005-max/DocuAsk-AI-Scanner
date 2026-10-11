@@ -44,7 +44,11 @@ final class GeminiClient {
         // Sample across the document, so late pages are represented in long PDFs.
         int take=Math.min(chunks.size(),Math.max(1,max/900));
         for(int i=0;i<take;i++) { Chunk c=chunks.get(take==1?0:(int)Math.round(i*(chunks.size()-1.0)/(take-1))); body.append("[Trang ").append(c.page).append("] ").append(c.text).append("\n"); }
-        return generate(key,"Tóm tắt ngắn gọn tài liệu sau bằng tiếng Việt. Nêu ý chính và số liệu quan trọng; chỉ dùng nội dung được cung cấp. Nếu tài liệu dài, nói đây là tóm tắt dựa trên các đoạn được chọn.\n\n"+body);
+        String prompt="Tóm tắt tài liệu bằng tiếng Việt trong một đoạn văn tối đa 100 từ. Nêu mục đích và gom các chủ đề chính; giữ lời khuyên cuối nếu có. "
+                +"Chỉ dùng nội dung được cung cấp, bỏ qua lỗi đánh máy OCR rõ ràng nhưng không suy đoán phần không chắc. "
+                +"Không viết tiêu đề, danh sách, Markdown hoặc mục số liệu khi nguồn không có số liệu. "
+                +(take<chunks.size()?"Đây chỉ là một số đoạn được chọn từ tài liệu dài; nói rõ giới hạn đó.\n\n":"\n\n")+body;
+        return generate(key,prompt);
     }
     private List<Chunk> chunks(List<DocStore.Page> pages) {
         List<Chunk> out=new ArrayList<>();

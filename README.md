@@ -12,9 +12,11 @@
 
 ## Cài và chạy
 
-APK release 1.0.2 đã ký nằm tại `D:\DocuAsk\release\DocuAsk-v1.0.2.apk` trong workspace cục bộ (không đẩy lên Git). Cài trên Android 8.0 trở lên. Nếu điện thoại đã cài **bản debug** trước đó, hãy dùng `D:\DocuAsk\release\DocuAsk-v1.0.2-phone-update.apk` để cập nhật mà không gỡ app; bản release có chữ ký khác và Android sẽ từ chối cập nhật trực tiếp. Muốn dùng tóm tắt/hỏi đáp, tạo key tại [Google AI Studio](https://aistudio.google.com/app/apikey), mở `⚙ Gemini` trong Thư viện rồi nhập key. OCR và đọc tài liệu đã lưu không cần mạng. Mỗi lần mở lại app cần nhập lại key.
+APK release 1.0.3 đã ký nằm tại `D:\DocuAsk\release\DocuAsk-v1.0.3.apk` trong workspace cục bộ (không đẩy lên Git). Cài trên Android 8.0 trở lên. Nếu điện thoại đã cài **bản debug** trước đó, hãy dùng `D:\DocuAsk\release\DocuAsk-v1.0.3-phone-update.apk` để cập nhật mà không gỡ app; bản release có chữ ký khác và Android sẽ từ chối cập nhật trực tiếp. Muốn dùng tóm tắt/hỏi đáp, tạo key tại [Google AI Studio](https://aistudio.google.com/app/apikey), mở `⚙ Gemini` trong Thư viện rồi nhập key. OCR và đọc tài liệu đã lưu không cần mạng. Mỗi lần mở lại app cần nhập lại key.
 
 Gemini có thể tạm thời trả lỗi 503 hoặc timeout khi model quá tải. Từ 1.0.2 app dùng Gemini 3.6 Flash trước; nếu model này quá tải hoặc hết thời gian chờ, app thử Gemini 3.8 Flash một lần. Mỗi lượt có giới hạn chờ 20 giây cho phản hồi và báo lỗi tiếng Việt nếu cả hai không trả lời. Lỗi này không có nghĩa API key sai.
+
+Từ 1.0.3, prompt tóm tắt yêu cầu một đoạn tối đa 100 từ, chỉ dùng nội dung được cung cấp và không tự thêm mục số liệu. Nút **Tóm tắt lại** nằm trên phần nội dung để dễ tạo lại bản cũ; giao diện bỏ các ký hiệu Markdown thô nếu Gemini vẫn trả về chúng.
 
 Để biên dịch: mở thư mục này bằng Android Studio, dùng JDK 17+ và Android SDK 34, chạy `:app:assembleDebug`. Để tạo APK release đã ký, giữ `release/signing.properties` và keystore được nêu trong đó rồi chạy `:app:assembleRelease`. Hai tệp ký không được đưa lên Git; **hãy sao lưu chúng ở nơi riêng tư** vì thiếu chúng sẽ không thể cập nhật APK bằng cùng danh tính ký.
 
@@ -38,7 +40,7 @@ flowchart LR
 
 ## Kiểm thử hiện có
 
-- `:app:assembleDebug` và `:app:assembleRelease` thành công; APK release 1.0.2 được xác minh chữ ký v2. Bản cập nhật tương thích chữ ký debug đã cài và mở được trên điện thoại đang dùng mà không cần gỡ app.
+- `:app:assembleDebug` và `:app:assembleRelease` thành công; APK release 1.0.3 được xác minh chữ ký v2. Bản cập nhật tương thích chữ ký debug đã cài và mở được trên điện thoại đang dùng mà không cần gỡ app.
 - Emulator Android 12: đã nhập PDF scan tiếng Việt và PDF có lớp chữ; đã kiểm tra văn bản lưu trong SQLite. APK release cài và mở được, không thấy crash. Ảnh màn hình nằm trong [screenshots](screenshots/); [video demo khoảng 53 giây](demo/DocuAsk-demo.mp4) cho thấy luồng giao diện.
 - Một hóa đơn **giả lập** cho ML Kit Latin: CER 0,008 và WER 0,077. Đây chỉ là smoke test, không phải so sánh engine trên tài liệu thật. Cách đo nằm trong [benchmark/README.md](benchmark/README.md); chạy `python tools/benchmark_ocr.py benchmark/fixtures/pairs.csv` để tái lập.
 
