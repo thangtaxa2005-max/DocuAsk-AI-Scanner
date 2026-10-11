@@ -37,7 +37,7 @@ flowchart LR
 ## Kiểm thử hiện có
 
 - `:app:assembleDebug` và `:app:assembleRelease` thành công; APK release được xác minh chữ ký v2.
-- Emulator Android 12: đã nhập PDF scan tiếng Việt và PDF có lớp chữ; đã kiểm tra văn bản lưu trong SQLite và không thấy crash. Ảnh màn hình nằm trong [screenshots](screenshots/).
+- Emulator Android 12: đã nhập PDF scan tiếng Việt và PDF có lớp chữ; đã kiểm tra văn bản lưu trong SQLite. APK release cài và mở được, không thấy crash. Ảnh màn hình nằm trong [screenshots](screenshots/); [video demo khoảng 53 giây](demo/DocuAsk-demo.mp4) cho thấy luồng giao diện.
 - Một hóa đơn **giả lập** cho ML Kit Latin: CER 0,008 và WER 0,077. Đây chỉ là smoke test, không phải so sánh engine trên tài liệu thật. Cách đo nằm trong [benchmark/README.md](benchmark/README.md); chạy `python tools/benchmark_ocr.py benchmark/fixtures/pairs.csv` để tái lập.
 
 ## Giới hạn cần kiểm tra trên máy thật
