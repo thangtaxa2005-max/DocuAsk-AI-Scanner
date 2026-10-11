@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
@@ -18,10 +19,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 final class GeminiClient {
-    static final String MODEL="gemini-3.8-flash";
+    static final String MODEL="gemini-3.6-flash";
+    static final String FALLBACK_MODEL="gemini-3.8-flash";
     private final Context context;
     GeminiClient(Context context) { this.context=context; }
     static final class Answer { String text, sources; Answer(String text,String sources) { this.text=text; this.sources=sources; } }
@@ -63,38 +64,39 @@ final class GeminiClient {
         ConnectivityManager cm=(ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkCapabilities capabilities=cm==null?null:cm.getNetworkCapabilities(cm.getActiveNetwork());
         if(capabilities==null||!capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) throw new Exception("Không có kết nối mạng. OCR và tài liệu đã lưu vẫn dùng được ngoại tuyến.");
-        for(int attempt=0;attempt<4;attempt++) {
-            try { return generateOnce(key,prompt); }
+        String[] models={MODEL,FALLBACK_MODEL};
+        for(int attempt=0;attempt<models.length;attempt++) {
+            try { return generateOnce(key,prompt,models[attempt]); }
+            catch(SocketTimeoutException e) {
+                if(attempt==models.length-1) throw new Exception("Gemini phản hồi quá chậm trên cả hai model. Hãy kiểm tra mạng và thử lại sau ít phút.");
+            }
             catch(GeminiHttpException e) {
-                if(!retryable(e.status)||attempt==3) {
-                    if(e.status==503) throw new Exception("Gemini đang quá tải. App đã thử lại 3 lần; vui lòng thử lại sau ít phút.");
-                    if(e.status==429) throw new Exception("Gemini đang giới hạn lượt gọi hoặc đã hết hạn mức. Vui lòng thử lại sau và kiểm tra Usage trong Google AI Studio.");
-                    throw e;
-                }
-                long delay=(1000L<<attempt)+ThreadLocalRandom.current().nextLong(300);
-                Thread.sleep(delay);
+                if(e.status==429) throw new Exception("Gemini đang giới hạn lượt gọi hoặc đã hết hạn mức. Hãy kiểm tra Usage trong Google AI Studio và thử lại sau.");
+                if(!retryable(e.status)) throw e;
+                if(attempt==models.length-1) throw new Exception("Gemini đang bận hoặc phản hồi quá chậm trên cả hai model. Hãy thử lại sau ít phút.");
             }
         }
-        throw new Exception("Không thể kết nối Gemini. Vui lòng thử lại sau.");
+        throw new Exception("Không thể kết nối Gemini. Hãy thử lại sau.");
     }
-    private static boolean retryable(int status) { return status==408||status==429||status==500||status==502||status==503||status==504; }
+    private static boolean retryable(int status) { return status==408||status==500||status==502||status==503||status==504; }
     private static final class GeminiHttpException extends Exception {
         final int status;
         GeminiHttpException(int status,String message) { super(message); this.status=status; }
     }
-    private String generateOnce(String key,String prompt) throws Exception {
-        HttpURLConnection conn=(HttpURLConnection)new URL("https://generativelanguage.googleapis.com/v1beta/models/"+MODEL+":generateContent").openConnection();
-        conn.setRequestMethod("POST"); conn.setConnectTimeout(15000); conn.setReadTimeout(60000); conn.setDoOutput(true);
+    private String generateOnce(String key,String prompt,String model) throws Exception {
+        HttpURLConnection conn=(HttpURLConnection)new URL("https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent").openConnection();
+        conn.setRequestMethod("POST"); conn.setConnectTimeout(10000); conn.setReadTimeout(20000); conn.setDoOutput(true);
         conn.setRequestProperty("Content-Type","application/json; charset=utf-8"); conn.setRequestProperty("x-goog-api-key",key.trim());
         JSONObject payload=new JSONObject().put("contents",new JSONArray().put(new JSONObject().put("parts",new JSONArray().put(new JSONObject().put("text",prompt)))));
         try {
             try(OutputStream out=conn.getOutputStream()) { out.write(payload.toString().getBytes(StandardCharsets.UTF_8)); }
             int status=conn.getResponseCode(); StringBuilder raw=new StringBuilder();
-            try(BufferedReader reader=new BufferedReader(new InputStreamReader(status<400?conn.getInputStream():conn.getErrorStream(),StandardCharsets.UTF_8))) {
+            java.io.InputStream stream=status<400?conn.getInputStream():conn.getErrorStream();
+            try(BufferedReader reader=new BufferedReader(new InputStreamReader(stream==null?new java.io.ByteArrayInputStream(new byte[0]):stream,StandardCharsets.UTF_8))) {
                 String line; while((line=reader.readLine())!=null) raw.append(line);
             }
             if(status==401||status==403) throw new GeminiHttpException(status,"API key không hợp lệ hoặc chưa được cấp quyền Gemini.");
-            if(status>=400) { JSONObject error=new JSONObject(raw.toString()).optJSONObject("error"); String message=error==null?"HTTP "+status:error.optString("message","HTTP "+status); throw new GeminiHttpException(status,"Gemini: "+message); }
+            if(status>=400) { JSONObject error=raw.length()==0?null:new JSONObject(raw.toString()).optJSONObject("error"); String message=error==null?"HTTP "+status:error.optString("message","HTTP "+status); throw new GeminiHttpException(status,"Gemini: "+message); }
             JSONObject response=new JSONObject(raw.toString()); JSONArray candidates=response.optJSONArray("candidates");
             if(candidates==null||candidates.length()==0) throw new Exception("Gemini không trả lời câu hỏi này.");
             JSONArray parts=candidates.getJSONObject(0).getJSONObject("content").getJSONArray("parts"); StringBuilder answer=new StringBuilder();
