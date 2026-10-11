@@ -34,8 +34,10 @@ final class GeminiClient {
         if(chunks.isEmpty()||chunks.get(0).score<=0) return new Answer("Mình chưa tìm thấy đoạn liên quan trong tài liệu. Hãy kiểm tra lại văn bản OCR hoặc hỏi cụ thể hơn.","");
         StringBuilder contextText=new StringBuilder(), sources=new StringBuilder();
         int count=Math.min(4,chunks.size());
-        for(int i=0;i<count;i++) { Chunk c=chunks.get(i); String label="[Trang "+c.page+", đoạn "+c.part+"]"; contextText.append(label).append('\n').append(c.text).append("\n\n"); sources.append(label).append(" ").append(c.text.substring(0,Math.min(140,c.text.length())).replace('\n',' ')).append("…\n"); }
-        String prompt="Bạn là trợ lý đọc tài liệu. Chỉ dùng các đoạn trích bên dưới để trả lời bằng tiếng Việt. Nếu không đủ thông tin, nói rõ không tìm thấy. Gắn nhãn [Trang N, đoạn M] ngay sau mỗi ý dựa trên đúng đoạn trích; không bịa số liệu hoặc nguồn.\n\nCÂU HỎI: "+question+"\n\nĐOẠN TRÍCH:\n"+contextText;
+        for(int i=0;i<count;i++) { Chunk c=chunks.get(i); String label="[Trang "+c.page+", đoạn "+c.part+"]"; contextText.append(label).append('\n').append(c.text).append("\n\n"); if(i>0)sources.append("\n\n———\n\n"); sources.append(label).append('\n').append(c.text); }
+        String prompt="Bạn là trợ lý đọc tài liệu. Chỉ dùng các đoạn trích bên dưới để trả lời trực tiếp bằng tiếng Việt, tối đa 100 từ. "
+                +"Nếu không đủ thông tin, nói rõ không tìm thấy. Gắn nhãn [Trang N, đoạn M] sau câu được đoạn đó hỗ trợ; "
+                +"gom các ý cùng nguồn để không lặp nhãn quá nhiều. Không bịa số liệu hoặc nguồn.\n\nCÂU HỎI: "+question+"\n\nĐOẠN TRÍCH:\n"+contextText;
         return new Answer(generate(key,prompt),sources.toString().trim());
     }
     String summarize(String key, List<DocStore.Page> pages) throws Exception {
