@@ -32,13 +32,16 @@ final class GeminiClient {
         for(Chunk c:chunks) { Set<String> words=terms(c.text); for(String t:terms) if(words.contains(t)) c.score+=1; c.score/=Math.sqrt(words.size()+1); }
         chunks.sort(Comparator.comparingDouble((Chunk c)->c.score).reversed());
         if(chunks.isEmpty()||chunks.get(0).score<=0) return new Answer("Mình chưa tìm thấy đoạn liên quan trong tài liệu. Hãy kiểm tra lại văn bản OCR hoặc hỏi cụ thể hơn.","");
-        StringBuilder contextText=new StringBuilder(), sources=new StringBuilder();
+        StringBuilder contextText=new StringBuilder(); List<String> labels=new ArrayList<>();
         int count=Math.min(4,chunks.size());
-        for(int i=0;i<count;i++) { Chunk c=chunks.get(i); String label="[Trang "+c.page+", đoạn "+c.part+"]"; contextText.append(label).append('\n').append(c.text).append("\n\n"); if(i>0)sources.append("\n\n———\n\n"); sources.append(label).append('\n').append(c.text); }
+        for(int i=0;i<count;i++) { Chunk c=chunks.get(i); String label="[Trang "+c.page+", đoạn "+c.part+"]"; labels.add(label); contextText.append(label).append('\n').append(c.text).append("\n\n"); }
         String prompt="Bạn là trợ lý đọc tài liệu. Chỉ dùng các đoạn trích bên dưới để trả lời trực tiếp bằng tiếng Việt, tối đa 100 từ. "
                 +"Nếu không đủ thông tin, nói rõ không tìm thấy. Gắn nhãn [Trang N, đoạn M] sau câu được đoạn đó hỗ trợ; "
                 +"gom các ý cùng nguồn để không lặp nhãn quá nhiều. Không bịa số liệu hoặc nguồn.\n\nCÂU HỎI: "+question+"\n\nĐOẠN TRÍCH:\n"+contextText;
-        return new Answer(generate(key,prompt),sources.toString().trim());
+        String response=generate(key,prompt);StringBuilder sources=new StringBuilder();
+        for(String label:labels)if(response.contains(label)){if(sources.length()>0)sources.append('\n');sources.append(label);}
+        if(sources.length()==0)sources.append(labels.get(0));
+        return new Answer(response,sources.toString());
     }
     String summarize(String key, List<DocStore.Page> pages) throws Exception {
         List<Chunk> chunks=chunks(pages); if(chunks.isEmpty()) throw new Exception("Tài liệu chưa có văn bản để tóm tắt.");
