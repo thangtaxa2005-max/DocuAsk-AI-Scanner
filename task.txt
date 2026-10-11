@@ -1,0 +1,20 @@
+Mô tả ứng dụng
+
+AI Document Scanner là app di động giúp quét tài liệu giấy hoặc nhập PDF, tự động nhận diện chữ (OCR) và lưu thành văn bản. Người dùng có thể tóm tắt tài liệu và hỏi đáp, AI trả lời dựa trên nội dung tài liệu kèm đoạn trích dẫn. App có 3 màn hình (Thư viện, Quét, Chi tiết/Hỏi đáp), dùng công cụ miễn phí (ML Kit, Gemini free tier, SQLite), không cần đăng nhập hay server. Điểm nhấn kỹ thuật: so sánh nhiều engine OCR cho tiếng Việt và chọn engine tốt nhất dựa trên số liệu đo được.
+
+Các task
+
+Khởi tạo: chốt framework, tạo project và repo GitHub, lấy API key miễn phí.
+Thử nghiệm OCR sớm: test ML Kit (và Tesseract/Gemini đọc ảnh) trên 10-15 tài liệu tiếng Việt, đo tỷ lệ lỗi, chọn engine.
+Thiết kế UI: wireframe 3 màn hình, dựng khung điều hướng.
+Quét tài liệu: camera, tự cắt viền, chụp nhiều trang.
+OCR: tích hợp engine đã chọn, cho phép sửa văn bản, thêm bước sửa lỗi dấu bằng LLM nếu cần.
+Lưu trữ: SQLite lưu tài liệu, ảnh, văn bản; xem, xóa, đổi tên.
+Hỏi đáp: chia đoạn văn bản, chọn đoạn liên quan, gửi LLM, hiển thị câu trả lời kèm trích dẫn.
+Nhập PDF: trích văn bản; PDF scan thì đưa qua OCR.
+Tóm tắt: nút gọi LLM tóm tắt tài liệu, thêm nút copy/xuất TXT.
+Xử lý lỗi: mất mạng, vượt quota, OCR sai, tài liệu quá dài, loading rõ ràng, nhắc không quét giấy tờ nhạy cảm.
+Kiểm thử và đo lường: thử hóa đơn, hợp đồng, sách; ghi lại độ chính xác OCR và tỷ lệ trả lời đúng.
+Hoàn thiện CV: README, ảnh chụp màn hình, sơ đồ luồng, APK release, video demo 1 phút.
+
+Thứ tự làm: 1 → 2 → 3 → 4 → 5 → 6 → 7 (đến đây đã có bản demo chạy được), rồi mới làm 8 → 9 → 10 → 11 → 12.

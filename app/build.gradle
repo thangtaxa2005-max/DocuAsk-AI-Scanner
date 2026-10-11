@@ -1,0 +1,35 @@
+plugins { id 'com.android.application' }
+
+def releaseProperties = new Properties()
+def releasePropertiesFile = rootProject.file('release/signing.properties')
+if (releasePropertiesFile.exists()) releasePropertiesFile.withInputStream { releaseProperties.load(it) }
+
+android {
+    namespace 'com.docuask.app'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.docuask.app'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+    signingConfigs {
+        if (releasePropertiesFile.exists()) {
+            localRelease {
+                storeFile rootProject.file(releaseProperties['storeFile'])
+                storePassword releaseProperties['storePassword']
+                keyAlias releaseProperties['keyAlias']
+                keyPassword releaseProperties['keyPassword']
+            }
+        }
+    }
+    buildTypes { release { minifyEnabled false; if (releasePropertiesFile.exists()) signingConfig signingConfigs.localRelease } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.13.0'
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
+    implementation 'com.tom-roush:pdfbox-android:2.0.27.0'
+}
