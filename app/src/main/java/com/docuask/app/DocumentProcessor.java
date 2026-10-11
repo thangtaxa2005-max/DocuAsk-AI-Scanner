@@ -56,7 +56,7 @@ final class DocumentProcessor {
                         bitmap.eraseColor(Color.WHITE); page.render(bitmap,null,null,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
                         DocStore.Page p=new DocStore.Page(); p.number=i+1;
                         String extracted=i<embedded.size()?embedded.get(i):"";
-                        p.text=extracted.length()>=40?extracted:recognize(bitmap);
+                        p.text=extracted.length()>=20?extracted:recognize(bitmap);
                         File dir=new File(context.getFilesDir(),"images"); if(!dir.exists()&&!dir.mkdirs()) throw new Exception("Không tạo được thư mục ảnh.");
                         File image=new File(dir,"pdf_"+System.currentTimeMillis()+"_"+i+".jpg");
                         try(FileOutputStream out=new FileOutputStream(image)) { bitmap.compress(Bitmap.CompressFormat.JPEG,88,out); }
